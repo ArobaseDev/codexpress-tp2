@@ -3,9 +3,54 @@
 {% block title %}{{ creator.username }}'s notes{% endblock %}
 
 {% block body %}
-    <h1>{{ creator.username }}'s notes</h1>
-    {% for item in userNotes %}
-        {{ dump(item) }}
-        <a href="{{ path('app_note_show', {'slug': item.slug}) }}">Show</a>
-    {% endfor %}
+    <header class="py-5 md:py-16">
+        <div class="px-4 sm:max-w-screen-sm md:max-w-screen-lg mx-auto">
+            <ul class="flex gap-2 text-violet-950 mb-4 text-sm">
+                <li class="after:content-['>']">
+                    <a href="{{ path('app_home') }}">Home</a>
+                </li>
+                <li class="after:content-['>']">
+                    <a href="{{ path('app_note_all') }}">All notes</a>
+                </li>
+                <li class="text-violet-600">
+                    {{ creator.username }}'s notes
+                </li>
+            </ul>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ creator.username }}'s notes</h1>
+            <div class="flex items-center gap-4">
+                <div 
+                    class="inline-block w-20 h-20 shadow-md rounded-full bg-cover bg-center"
+                    style="background-image: url('{{ '/images/uploads/' ~ creator.image ?? 'default.png' }}')"
+                ></div>
+                <div>
+                    <p class="text-xl font-bold">{{ creator.username }}</p>
+                    <p class="text-sm text-slate-600">Member since {{ creator.createdAt|time_diff }} ago</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-screen-lg mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in userNotes %}
+                <a href="{{ path('app_note_show', {'slug': item.slug}) }}" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+                    <h2 class="text-xl font-semibold mb-2">{{ item.title }}</h2>
+                    <p class="text-slate-600 mb-4">{{ item.content|slice(0, 100) }}...</p>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-violet-600 flex items-center">
+                            <img src="{{ item.category.icon }}" alt="{{ item.category.title }}" class="h-5 w-5 inline-block mr-1">
+                            {{ item.category.title }}
+                        </span>
+                        <span class="text-slate-500">{{ item.createdAt|time_diff }} ago</span>
+                    </div>
+                </a>
+            {% else %}
+                <p class="col-span-full text-center text-lg text-slate-600">No notes found for this user.</p>
+            {% endfor %}
+        </div>
+    </main>
+
+    <div class="max-w-screen-lg mx-auto px-4 pb-6 md:pb-16">
+        {{ include('components/cta.html.twig') }}
+    </div>
 {% endblock %}

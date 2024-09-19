@@ -33,6 +33,12 @@
 				</div>
 			{% endfor %}
 		</div>
+		<div class="flex justify-center mt-4 mb-8">
+			<a href="{{ path('app_note_all') }}" class="bg-violet-100 rounded-md py-2 px-3 hover:bg-violet-200 w-fit transition-all duration-200 ease-in-out flex items-center gap-2">
+				{{ ux_icon('mdi:archive-outline', { 'class': 'h-5 w-5 text-violet-950' }) }}
+				See all notes
+			</a>
+		</div>
 		{% include 'components/cta.html.twig' %}
 	</main>
 

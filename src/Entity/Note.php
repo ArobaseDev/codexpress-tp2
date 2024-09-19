@@ -29,9 +29,6 @@ class Note
     #[ORM\Column]
     private ?bool $is_public = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
-    private ?string $views = null;
-
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
 
@@ -52,12 +49,15 @@ class Note
     #[ORM\JoinColumn(nullable: false)]
     private ?User $creator = null;
 
+    #[ORM\Column]
+    private ?bool $is_premium = null;
+
     public function __construct()
     {
         $this->notifications = new ArrayCollection(); // initialisation du tableau de notifications
         $this->is_public = false; // initialisation du booléen à false
+        $this->is_premium = false; // initialisation du booléen à false
         $this->title = uniqid('note-'); // initialisation du titre au GUID
-        $this->views = 0; // initialisation du compteur de vues
     }
 
     #[ORM\PrePersist]
@@ -122,18 +122,6 @@ class Note
     public function setPublic(bool $is_public): static
     {
         $this->is_public = $is_public;
-
-        return $this;
-    }
-
-    public function getViews(): ?string
-    {
-        return $this->views;
-    }
-
-    public function setViews(string $views): static
-    {
-        $this->views = $views;
 
         return $this;
     }
@@ -212,6 +200,18 @@ class Note
     public function setCreator(?User $creator): static
     {
         $this->creator = $creator;
+
+        return $this;
+    }
+
+    public function isPremium(): ?bool
+    {
+        return $this->is_premium;
+    }
+
+    public function setPremium(bool $is_premium): static
+    {
+        $this->is_premium = $is_premium;
 
         return $this;
     }

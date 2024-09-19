@@ -1,14 +1,77 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ note.title }}{% endblock %}
+{% block title %}
+    {{ note.title }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-markup-templating.min.js"></script>
+    {# Add more language components as needed, for example: #}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js"></script>
+{% endblock %}
 
 {% block body %}
-    <h1>{{ note.title }}</h1>
-    {% for message in app.flashes('success') %}
-    <div class="">
-        {{ message }}
+    {{ include('components/note_header.html.twig') }}
+    <section class="max-w-screen-lg mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <article class="col-span-1 md:col-span-2 bg-[#f5f2f0] rounded-md p-4 md:p-6 mb-4 flex flex-col border relative">
+            <button class="bg-neutral-300 rounded-md py-2 px-3 text-sm hover:bg-neutral-500 hover:text-white self-end w-fit transition-all duration-200 ease-in-out absolute bottom-2 right-2">
+                copy
+            </button>
+            <code class="language-html">{{ note.content|escape }}</code>
+        </article>
+        <aside class="flex flex-col gap-4 md:col-span-1">
+            <div class="rounded-md p-4 mb-4 flex flex-col gap-4 border">
+                <a href="{{ path('app_note_user', { 'username': note.creator.username }) }}" class="flex items-center gap-2">
+                    <div 
+                        class="inline-block w-10 h-10 shadow-md rounded-full bg-cover bg-center"
+                        style="background-image: url('{{ '/images/uploads/' ~ note.creator.image ?? 'default/user.png' }}')"
+                    >
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <p class="text-xl font-bold">{{ note.creator.username }}</p>
+                        <p class="text-sm text-slate-600">Member since {{ note.creator.createdAt|time_diff }} ago</p>
+                    </div>
+                </a>
+                <div class="flex gap-2 items-center text-sm">
+                    <form action="" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token('authenticate') }}">
+                        <input type="hidden" name="note_id" value="{{ note.id }}">
+                        <input type="hidden" name="creator_id" value="{{ app.user.id ?? 1 }}">
+                        <button type="submit" class="flex items-center gap-1 bg-violet-100 rounded-md py-2 px-3 hover:bg-violet-200 self-end w-fit transition-all duration-200 ease-in-out">
+                            {% set likes = note.views %} {# TODO: Mettre le nb de Like après update des entités #}
+                            {{ ux_icon('mdi:heart-outline', { 'class': 'h-5 w-5 text-violet-950 mr-1 inline-block' }) }}
+                            {{ likes|format_number }}
+                        </button>
+                    </form>
+                    {% for item in note.creator.networks %}
+                        <a href="{{ item.url }}" class="bg-violet-100 rounded-md py-2 px-3 hover:bg-violet-200 self-end w-fit transition-all duration-200 ease-in-out">
+                            {{ ux_icon('mdi:' ~ item.name, { 'class': 'h-5 w-5 text-violet-950 inline-block' }) }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="grid grid-cols-1 gap-4">
+                {% for item in creatorNotes %}
+                    <a href="{{ path('app_note_show', {'slug': item.slug}) }}" class="rounded-md p-4 md:p-6 mb-4 flex flex-col border">
+                        <p class="text-base mb-1 font-semibold">{{ item.title|slice(0,22) }}...</p>
+                        <p class="text-slate-600 mb-2 text-sm">
+                            <img src="{{ item.category.icon }}" alt="{{ item.category.title }}" class="inline-block h-7 w-7 mr-2">
+                            Published {{ item.createdAt|time_diff }} ago.
+                        </p>
+                    </a>
+                {% endfor %}
+            </div>
+        </aside>
+    </section>
+    <div class="max-w-screen-lg mx-auto px-4 pb-6 md:pb-16">
+        {{ include('components/cta.html.twig') }}
     </div>
-    {% endfor %}
-    {{ dump(note) }}
-    <a href="{{ path('app_note_all') }}">Back to all notes</a>
 {% endblock %}

@@ -7,30 +7,51 @@ use App\Form\NoteType;
 use App\Repository\NoteRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/notes')] // Suffixe pour les routes du controller
 class NoteController extends AbstractController
 {
     #[Route('/', name: 'app_note_all', methods: ['GET'])]
-    public function all(NoteRepository $nr): Response
+    public function all(NoteRepository $nr, Request $request, PaginatorInterface $paginator): Response
     {
+
+        $pagination = $paginator->paginate(
+            $nr->findBy(['is_public' => true], ['created_at' => 'DESC']), /*Requête pour récupérer les notes publiques*/
+            $request->query->getInt('page', 1), /*page en cours*/
+            10 /*Nombre d'éléments par page*/
+        );
+
         return $this->render('note/all.html.twig', [
-            'allNotes' => $nr->findBy(['is_public' => true], ['created_at' => 'DESC']),
+            'allNotes' => $pagination,
         ]);
     }
 
     #[Route('/n/{slug}', name: 'app_note_show', methods: ['GET'])]
     public function show(string $slug, NoteRepository $nr): Response
     {
-        // TODO: Mettre en place le filtre pour les notes privées
-        return $this->render('note/show.html.twig', [
-            'note' => $nr->findOneBySlug($slug),
-        ]);
+        $note = $nr->findOneBySlug($slug);
+        if ($note === null) {
+            throw $this->createNotFoundException('Note not found');
+        } else {
+            if ($note->isPublic()) {
+            //    $creatorNotes = $note->getCreator()->getNotes();
+                $creatorNotes = $nr->findByCreator($note->getCreator()->getId());
+            //    dd($creatorNotes);
+                return $this->render('note/show.html.twig', [
+                    'note' => $note,
+                    'creatorNotes' => $creatorNotes,
+                ]);
+            } else {
+                throw $this->createAccessDeniedException('This note is private');
+            }
+        }
     }
 
     #[Route('/u/{username}', name: 'app_note_user', methods: ['GET'])]
@@ -44,11 +65,6 @@ class NoteController extends AbstractController
             'userNotes' => $creator->getNotes(), // Récupère les notes de l'utilisateur
         ]);
     }
-
-
-
-
-
 
 
     #[Route('/new', name: 'app_note_new', methods: ['GET', 'POST'])]
@@ -80,25 +96,33 @@ class NoteController extends AbstractController
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[Route('/edit/{slug}', name: 'app_note_edit', methods: ['GET', 'POST'])]
-    public function edit(string $slug, NoteRepository $nr): Response
+    public function edit(
+        string $slug, 
+        NoteRepository $nr,
+        Request $request,
+        EntityManagerInterface $em
+        ): Response
     {
         $note = $nr->findOneBySlug($slug); // Recherche de la note à modifier
+        if ($note->getCreator() != $this->getUser()) {
+            $this->addFlash('error', 'You are not authorized to edit this note');
+            return $this->redirectToRoute('app_note_show', ['slug' => $slug ]);
+        }
+
+
+        $form = $this->createForm(NoteType::class); // Chargement du formulaire
+        $form = $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+        
+            $em->persist($note);
+            $em->flush();
+            
+            $this->addFlash('success', 'Your note has been updated');
+            return $this->redirectToRoute('app_note_show', ['slug' => $note->getSlug()]);
+        }
+        
         // TODO: Formulaire de modification et traitement des données
         return $this->render('note/edit.html.twig', [
             // TODO: Formulaire à envoyer à la vue Twig
