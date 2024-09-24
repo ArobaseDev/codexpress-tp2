@@ -39,6 +39,7 @@ class NoteController extends AbstractController
     {
      //   dd($request->getClientIp());
         $note = $nr->findOneBySlug($slug);
+        /*
         if ($note === null) {
             throw $this->createNotFoundException('Note not found');
         } else {
@@ -57,6 +58,25 @@ class NoteController extends AbstractController
                 throw $this->createAccessDeniedException('This note is private');
             }
         }
+            */
+            if (!$note) {
+                throw $this->createNotFoundException('Note not found');
+            }
+    
+            //---------- Ça finira dans un NoteViewService.php
+            $view = new View();
+            $view
+            ->setNote($note)
+            ->setIpAddress($request->getClientIp());
+            $em->persist($view);
+            $em->flush();
+            //---------- Ça finira dans un NoteViewService.php
+    
+            return $this->render('note/show.html.twig', [
+                'note' => $note,
+                'creatorNotes' => $nr->findByCreator($note->getCreator()->getId()),
+            ]);
+
     }
 
     #[Route('/u/{username}', name: 'app_note_user', methods: ['GET'])]
