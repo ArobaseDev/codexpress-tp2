@@ -69,7 +69,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->notes = new ArrayCollection();
-        $this->image = 'default.webp';
+        $this->likes = new ArrayCollection();
+        $this->networks = new ArrayCollection();
+        $this->subscriptions = new ArrayCollection();
+        $this->image = 'default.png';
     }
 
     #[ORM\PrePersist]
@@ -279,5 +282,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->image = $image;
 
         return $this;
+    }
+
+    public function __toString(): string {
+        return $this->username;
     }
 }

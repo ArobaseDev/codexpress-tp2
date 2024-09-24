@@ -5,5 +5,17 @@
 {% endblock %}
 
 {% block body %}
+	<header class="bg-gradient-to-r from-violet-100 via-slate-100 to-indigo-100 py-5 md:py-16">
+		<div class="px-4 sm:max-w-screen-sm md:max-w-screen-lg mx-auto">
+			<h1 class="text-4xl md:text-5xl font-bold text-center">Create New Note</h1>
+			<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Itaque tenetur quibusdam maxime quaerat odit soluta doloremque, voluptate adipisci pariatur, quae eos dolor ratione voluptatibus architecto laborum? Distinctio et fugit iusto!</p>
+		</div>
+	</header>
+    <main class="max-w-screen-lg mx-auto py-5 md:py-16 px-4">
+    <h3 class="text-violet-950">
+			{{ ux_icon('mdi:pencil', { 'class': 'h-5 w-5 text-violet-950 mr-1 inline-block' }) }}
+			Write Your Code
+		</h3>
     {{ form(noteForm) }}
+    </main>
 {% endblock %}

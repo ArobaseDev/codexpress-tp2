@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Note;
+use App\Entity\View;
 use App\Form\NoteType;
 use App\Repository\NoteRepository;
 use App\Repository\UserRepository;
@@ -11,8 +12,8 @@ use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/notes')] // Suffixe pour les routes du controller
@@ -34,16 +35,20 @@ class NoteController extends AbstractController
     }
 
     #[Route('/n/{slug}', name: 'app_note_show', methods: ['GET'])]
-    public function show(string $slug, NoteRepository $nr): Response
+    public function show(string $slug, NoteRepository $nr, Request $request, EntityManagerInterface $em): Response
     {
+     //   dd($request->getClientIp());
         $note = $nr->findOneBySlug($slug);
         if ($note === null) {
             throw $this->createNotFoundException('Note not found');
         } else {
             if ($note->isPublic()) {
+                $view = new View();
+                $view->setNote($note)->setIpAddress($request->getClientIp());
+                $em->persist($view);
+                $em->flush();
             //    $creatorNotes = $note->getCreator()->getNotes();
                 $creatorNotes = $nr->findByCreator($note->getCreator()->getId());
-            //    dd($creatorNotes);
                 return $this->render('note/show.html.twig', [
                     'note' => $note,
                     'creatorNotes' => $creatorNotes,

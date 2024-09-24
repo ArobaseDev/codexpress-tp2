@@ -49,4 +49,17 @@ class CreatorController extends AbstractController
             'creatorForm' => $form,
         ]);
     }
+
+    #[Route('/network/delete', name: 'app_network_delete', methods: ['POST'])]
+    public function deleteNetwork(Request $request, NetworkRepository $ntr, EntityManagerInterface $em): Response
+    {
+        $network = $ntr->find($request->request->get('network_id'));
+        $em->remove($network);
+        $em->flush();
+
+        $this->addFlash('success', 'Your network has been deleted');
+        return $this->redirectToRoute('app_profile');
+    }
+
+
 }

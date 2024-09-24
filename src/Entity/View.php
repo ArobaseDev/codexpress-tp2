@@ -19,7 +19,7 @@ class View
     #[ORM\JoinColumn(nullable: false)]
     private ?Note $note = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 50)]
     private ?string $ip_address = null;
 
     #[ORM\Column]

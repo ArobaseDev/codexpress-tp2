@@ -28,7 +28,7 @@ class UploaderService
 
     public function deleteImage(string $fileName): void
     {
-        if ($fileName === 'default.png') {
+        if ($fileName === 'default.png' || $fileName === 'default.webp') {
             return;
         }
         try {
