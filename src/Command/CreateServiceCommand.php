@@ -72,7 +72,10 @@ abstract class AbstractService
     public function __construct(
         protected ParameterBagInterface \$parameterBag,
         protected MailerInterface \$mailer
-    ) {}
+    ) {
+        $this->parameter = \$parameter;
+        $this->mailer = \$mailer;
+     }
 }
 EOT;
 
